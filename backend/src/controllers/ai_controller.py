@@ -1,13 +1,11 @@
 from fastapi import HTTPException, status
-from dotenv import load_dotenv
-import os
 from src.schemas.text_request import TextRequest
 from google import genai
 from google.genai import errors as gemini_errors
+from src.utils.env_variables import get_api_key
 
-# Load the API key
-load_dotenv()
-API_KEY = os.getenv("API_KEY")
+# Get the API key
+API_KEY = get_api_key()
 client = genai.Client(api_key=API_KEY)
 
 async def prompt_gemini(text: TextRequest) -> dict:
@@ -18,7 +16,7 @@ async def prompt_gemini(text: TextRequest) -> dict:
     
     try:
         interaction = client.interactions.create(
-            model="gemini-3.5-flash",
+            model="gemini-2.5-flash-lite",
             input=f"Summarize this text in three single-sentence bullet points mark with asterisks: {text.text}"
         )
 
@@ -26,9 +24,6 @@ async def prompt_gemini(text: TextRequest) -> dict:
         return {"summary": interaction.output_text} 
     
     except gemini_errors.ClientError as e:
-        # Rate limit reached
-        if e.code == 429: 
-            raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit exceeded. Please try again shortly")
         # Errors due too: bad request, invalid model, auth issues
         raise HTTPException(status_code=e.code or status.HTTP_400_BAD_REQUEST, detail=e.message)
     
@@ -41,5 +36,11 @@ async def prompt_gemini(text: TextRequest) -> dict:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Gemini API error: {e.message}")
 
     except Exception as e:
+        # Rate limit exceeded
+        if type(e).__name__ == "RateLimitError":
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Rate limit exceeded. Please try again later."
+            )
         # Unexpected errors
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Unexpected error: {e}")
