@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.routers import summary_router
+from src.routers import summary_router, test_router
 from fastapi.middleware.cors import CORSMiddleware
 from src.utils.env_variables import get_cors_origins
 
@@ -16,4 +16,5 @@ app.add_middleware(
 )
 
 app.include_router(summary_router.router)
+app.include_router(test_router.router)
 
