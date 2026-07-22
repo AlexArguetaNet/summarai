@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.controllers.ai_controller import prompt_gemini
+from src.controllers.ai_controller import prompt_llama
 from src.schemas.text_request import TextRequest
 
 router = APIRouter()
@@ -28,4 +28,4 @@ async def summarize(text: TextRequest) -> dict:
                 - 500 for any other unexpected error
 
     """
-    return await prompt_gemini(text)
+    return await prompt_llama(text)
