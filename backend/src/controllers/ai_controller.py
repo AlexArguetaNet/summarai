@@ -30,9 +30,14 @@ async def prompt_llama(text: TextRequest) -> dict:
             HTTPException: 500 Internal Server Error - unexpected backend failures
 
     """
-   # Check if the text is reasonably long enough to summarize
+    # Check if the text is reasonably long enough to summarize
     if len(text.text) < 250:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Text must be at least 250 characters long")
+
+    # Check if input is only whitespace
+    isOnlySpaces = len(text.text.strip()) == 0
+    if isOnlySpaces:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Input is empty. Please enter some text")
 
     user_text = text.text # Get the user's text from the pydantic model
 
