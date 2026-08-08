@@ -43,9 +43,11 @@ async def prompt_llama(text: TextRequest) -> dict:
 
     # Check if the text is reasonably long enough to summarize
     if len(text.text) < 250:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Text must be at least 250 characters long")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Text must be at least 250 characters long.")
 
-    user_text = text.text # Get the user's text from the pydantic model
+    # Check if the input text has exceeded the maximum character count of 25,000
+    if len(text.text) > 25000:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Maximum text length reached. Text should be less than 25000 characters.")
 
     try:
 
@@ -56,7 +58,7 @@ async def prompt_llama(text: TextRequest) -> dict:
             messages = [
                 {
                     "role": "user",
-                    "content": f"{prompt}{user_text}",
+                    "content": f"{prompt}{text.text}",
                 }
             ],
         )
