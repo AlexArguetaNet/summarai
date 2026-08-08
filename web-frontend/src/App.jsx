@@ -10,6 +10,7 @@ import { AlertCircleIcon } from "lucide-react"
 function App() {
 
   const [text, setText] = useState("");
+  const [charCount, setCharCount] = useState(0);
   const [summaryArr, setSummaryArr] = useState([]);
   const [summaryStr, setSummaryStr] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +33,15 @@ function App() {
     }
 
     setIsLoading(false);
+
+  }
+
+  const handleTextChange = (text) => {
+    // Check character count, omitting whitespace
+    setCharCount(text.trim().replace(" ", "").length);
+
+    // Set the text value
+    setText(text);
 
   }
 
@@ -70,12 +80,12 @@ function App() {
           className="h-72 resize-none text-xl mt-1" 
           placeholder="Enter your text here" 
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => handleTextChange(e.target.value)}
         />
 
         <div className="flex justify-between py-5">
           <Button onClick={handleClick} >Summarize</Button>
-          <p>Character count | {text.length}</p>
+          <p>Character count | {charCount}</p>
         </div>
 
         <div className="flex justify-center">
