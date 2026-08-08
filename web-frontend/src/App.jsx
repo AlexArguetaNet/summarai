@@ -13,6 +13,7 @@ function App() {
   const [charCount, setCharCount] = useState(0);
   const [summaryArr, setSummaryArr] = useState([]);
   const [summaryStr, setSummaryStr] = useState("");
+  const [disableButton, setDisableButton] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false)
   const [errorExists, setErrorExists] = useState(false);
@@ -24,6 +25,8 @@ function App() {
     e.preventDefault();
 
     setIsLoading(true);
+    setDisableButton(true);
+
     try {
       const summary = await fetchSummary(text);
       setSummaryArr(summary.summaryArray);
@@ -33,6 +36,7 @@ function App() {
     } catch (error) {
       setErrorExists(true);
       setErrorDescription(error.message);
+      setDisableButton(false);
     }
 
     setIsLoading(false);
@@ -51,7 +55,9 @@ function App() {
   const handleClear = () => {
     setSummaryArr("");
     setText("");
-    isCopied(false);
+    setCharCount(0);
+    setIsCopied(false);
+    setDisableButton(false);
   }
 
   const handleCopy = () => {
@@ -89,7 +95,7 @@ function App() {
           />
 
           <div className="flex justify-between py-5">
-            <Button type="submit" >Summarize</Button>
+            <Button type="submit" disabled={disableButton} className="bg-green-400 text-black">Summarize</Button>
             <p>Character count | {charCount}</p>
           </div>
 
@@ -113,7 +119,7 @@ function App() {
                   
                   {isCopied && <p>Copied!</p>}
                   <Button onClick={handleCopy}>Copy</Button>
-                  <Button onClick={handleClear}>Clear</Button>
+                  <Button onClick={handleClear} className="bg-green-400 text-black">New</Button>
                 </div>
               </div>
           }
