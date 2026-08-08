@@ -18,7 +18,10 @@ function App() {
   const [errorExists, setErrorExists] = useState(false);
   const [errorDescription, setErrorDescription] = useState("");
 
-  const handleClick = async () => {
+  const handleClick = async (e) => {
+
+    // Prevent default submit behavior
+    e.preventDefault();
 
     setIsLoading(true);
     try {
@@ -76,17 +79,21 @@ function App() {
             </Alert>
         }
 
-        <Textarea 
-          className="h-72 resize-none text-xl mt-1" 
-          placeholder="Enter your text here" 
-          value={text}
-          onChange={(e) => handleTextChange(e.target.value)}
-        />
+        <form onSubmit={(e) => handleClick(e)}>
+          <Textarea 
+            className="h-72 resize-none text-xl mt-1" 
+            placeholder="Enter your text here" 
+            value={text}
+            onChange={(e) => handleTextChange(e.target.value)}
+            required
+          />
 
-        <div className="flex justify-between py-5">
-          <Button onClick={handleClick} >Summarize</Button>
-          <p>Character count | {charCount}</p>
-        </div>
+          <div className="flex justify-between py-5">
+            <Button type="submit" >Summarize</Button>
+            <p>Character count | {charCount}</p>
+          </div>
+
+        </form>
 
         <div className="flex justify-center">
           {
