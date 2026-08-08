@@ -30,10 +30,16 @@ async def prompt_llama(text: TextRequest) -> dict:
             HTTPException: 500 Internal Server Error - unexpected backend failures
 
     """
+    textNoSpaces = text.text.strip()
+
     # Check if input is only whitespace
-    isOnlySpaces = len(text.text.strip()) == 0
+    isOnlySpaces = len(textNoSpaces) == 0
     if isOnlySpaces:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Input is empty. Please enter some text")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Input is empty. Please enter some text.")
+
+    # Check if input is only numbers
+    if textNoSpaces.isdigit():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Text is only numbers. Please enter words.")
 
     # Check if the text is reasonably long enough to summarize
     if len(text.text) < 250:
@@ -42,12 +48,15 @@ async def prompt_llama(text: TextRequest) -> dict:
     user_text = text.text # Get the user's text from the pydantic model
 
     try:
+
+        prompt = "Summarize this text in three single-sentence bullet points mark with asterisks: "
+
         chat_completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages = [
                 {
                     "role": "user",
-                    "content": f"Summarize this text in three single-sentence bullet points mark with asterisks: {user_text}",
+                    "content": f"{prompt}{user_text}",
                 }
             ],
         )
@@ -57,7 +66,7 @@ async def prompt_llama(text: TextRequest) -> dict:
 
     # Handle Exceptions
     except APIConnectionError as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Groq services cannot be reached")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI service cannot be reached")
     
     except RateLimitError as e:
         raise HTTPException(status_code=e.status_code, detail="Rate limit exceeded")
