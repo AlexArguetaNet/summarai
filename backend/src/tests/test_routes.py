@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from src.main import app
+import pytest
 
 client = TestClient(app)
 
@@ -12,3 +13,20 @@ def test_summarize():
     assert response.status_code == 200
     assert "summary" in response.json()
 
+@pytest.mark.parametrize(
+        "text",
+        [
+            pytest.param("", id="empty"),
+            pytest.param("    ", id="whitespace"),
+            pytest.param("12345678910", id="numbers"),
+            pytest.param("hello there how are you", id="under-char-count"),
+        ]
+)
+def test_summarize_invalid_input(text):
+    response = client.post(
+        "/summarize",
+        json={"text": text}
+    )
+
+    assert response.status_code == 400
+    assert "detail" in response.json()
