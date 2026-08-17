@@ -12,12 +12,4 @@ Processes a block of text and generates a three-bullet-point summary using Meta 
 * Returns a JSON object with a `summary` key containing three bullet points marked by asterisks.
 """
 
-# Descriptions for test router
-
-MOCK_SUMMARY_ENDPOINT_DESCRIPTION= """
-Returns a mock summarization of a paragraph into three bullet points for testing purposes.
-
-### Expected Output:
-* Returns a JSON object with a `summary` key containing three bullet points marked by asterisks.
-"""
 
