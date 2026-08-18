@@ -2,6 +2,7 @@ from unittest.mock import patch, MagicMock
 from src.controllers.ai_controller import prompt_gpt
 from src.schemas.text_request import TextRequest
 from fastapi import HTTPException
+from groq import APIConnectionError, RateLimitError, APIStatusError
 import pytest
 
 @pytest.mark.asyncio # Need this decorator to test async functions
@@ -55,3 +56,72 @@ async def test_prompt_gpt_illegible_response():
 
         assert e.value.status_code == 400
         assert e.value.detail == "Text may be illegible"
+
+@pytest.mark.asyncio
+async def test_prompt_gpt_api_connection_error():
+    with patch(
+        "src.controllers.ai_controller.client.chat.completions.create",
+        side_effect=APIConnectionError(
+            message="Unable to connect to Groq",
+            request=None
+        )
+    ):
+        text = TextRequest(
+            text="The Google Pixel 11 is the latest addition to Google's smartphone lineup, showcasing advanced features and enhancements that cater to tech-savvy users. With its improved camera capabilities, sleek design, and integration of artificial intelligence, the device aims to provide an exceptional user experience. Additionally, the Pixel 11 is expected to offer seamless connectivity and performance, making it a strong contender in the competitive smartphone market."
+        )
+
+        with pytest.raises(HTTPException) as e:
+            await prompt_gpt(text)
+
+        assert e.value.status_code == 503
+        assert e.value.detail == "AI service cannot be reached"
+
+@pytest.mark.asyncio
+async def test_prompt_gpt_rate_limit_error():
+    mock_response = MagicMock()
+    mock_response.status_code = 429
+
+    mock_error = RateLimitError(
+        message="Too many requests",
+        response=mock_response,
+        body=None
+    )
+
+    with patch(
+        "src.controllers.ai_controller.client.chat.completions.create",
+        side_effect=mock_error
+    ):
+        text = TextRequest(
+                    text="The Google Pixel 11 is the latest addition to Google's smartphone lineup, showcasing advanced features and enhancements that cater to tech-savvy users. With its improved camera capabilities, sleek design, and integration of artificial intelligence, the device aims to provide an exceptional user experience. Additionally, the Pixel 11 is expected to offer seamless connectivity and performance, making it a strong contender in the competitive smartphone market."
+        )
+        
+        with pytest.raises(HTTPException) as e:
+            await prompt_gpt(text)
+
+        assert e.value.status_code == 429
+        assert e.value.detail == "Rate limit exceeded"
+
+@pytest.mark.asyncio
+async def test_prompt_gpt_api_status_error():
+    mock_response = MagicMock()
+    mock_response.status_code = 500
+
+    mock_error = APIStatusError(
+        message="Internal server error",
+        response=mock_response,
+        body=None
+    )
+
+    with patch(
+        "src.controllers.ai_controller.client.chat.completions.create",
+        side_effect=mock_error
+    ):
+        text = TextRequest(
+            text="The Google Pixel 11 is the latest addition to Google's smartphone lineup, showcasing advanced features and enhancements that cater to tech-savvy users. With its improved camera capabilities, sleek design, and integration of artificial intelligence, the device aims to provide an exceptional user experience. Additionally, the Pixel 11 is expected to offer seamless connectivity and performance, making it a strong contender in the competitive smartphone market."
+        )
+                
+        with pytest.raises(HTTPException) as e:
+            await prompt_gpt(text)
+
+        assert e.value.status_code == 500
+        assert e.value.detail == "There was an error with AI services"
