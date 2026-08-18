@@ -7,7 +7,10 @@ import pytest
 
 @pytest.mark.asyncio # Need this decorator to test async functions
 async def test_prompt_gpt():
-    """ Test a successful response """
+    """ 
+        Verifies that no exceptions are raised when valid input is passed to prompt_gpt() 
+        when there is a stable connection to the Groq API
+    """
     mock_response = MagicMock()
 
     # Create mock response
@@ -41,7 +44,7 @@ async def test_prompt_gpt():
 
 @pytest.mark.asyncio
 async def test_prompt_gpt_illegible_response():
-    """ Test illegible text response """
+    """ Verifies that a response to illegible text raises a 400 error """
 
     mock_response = MagicMock() # Create MagicMock instance
     mock_response.choices[0].message.content = "***\n*\n***" # Create mock response 
@@ -66,6 +69,7 @@ async def test_prompt_gpt_illegible_response():
 
 @pytest.mark.asyncio
 async def test_prompt_gpt_api_connection_error():
+    """ Verifies that the APIConnectionError raises a 503 error """
 
     # Create mock error
     mock_error = APIConnectionError(
@@ -92,6 +96,8 @@ async def test_prompt_gpt_api_connection_error():
 
 @pytest.mark.asyncio
 async def test_prompt_gpt_rate_limit_error():
+    """ Verifies that the RateLimitError raises a 429 error """
+
     mock_response = MagicMock()
     mock_response.status_code = 429 # Set status code to mock response
 
@@ -121,6 +127,8 @@ async def test_prompt_gpt_rate_limit_error():
 
 @pytest.mark.asyncio
 async def test_prompt_gpt_api_status_error():
+    """ Verifies that the APIStatusError raises a 500 error """
+
     mock_response = MagicMock()
     mock_response.status_code = 500 # Set status code to the mock response
 
