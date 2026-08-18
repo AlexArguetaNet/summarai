@@ -1,9 +1,10 @@
 from unittest.mock import patch, MagicMock
 from src.controllers.ai_controller import prompt_gpt
 from src.schemas.text_request import TextRequest
+from fastapi import HTTPException
 import pytest
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio # Need this decorator to test async functions
 async def test_prompt_gpt():
     mock_response = MagicMock()
 
@@ -35,3 +36,22 @@ async def test_prompt_gpt():
                 "*This is the third point."
             )
         }
+
+@pytest.mark.asyncio
+async def test_prompt_gpt_illegible_response():
+    mock_response = MagicMock()
+    mock_response.choices[0].message.content = "***\n*\n***"
+
+    with patch(
+        "src.controllers.ai_controller.client.chat.completions.create",
+        return_value=mock_response
+    ):
+        text = TextRequest(
+            text="The Google Pixel 11 is the latest addition to Google's smartphone lineup, showcasing advanced features and enhancements that cater to tech-savvy users. With its improved camera capabilities, sleek design, and integration of artificial intelligence, the device aims to provide an exceptional user experience. Additionally, the Pixel 11 is expected to offer seamless connectivity and performance, making it a strong contender in the competitive smartphone market."
+        )
+
+        with pytest.raises(HTTPException) as e:
+            await prompt_gpt(text)
+
+        assert e.value.status_code == 400
+        assert e.value.detail == "Text may be illegible"
