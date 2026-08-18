@@ -13,6 +13,7 @@ def test_summarize():
     assert response.status_code == 200
     assert "summary" in response.json()
 
+
 @pytest.mark.parametrize(
         "text",
         [
