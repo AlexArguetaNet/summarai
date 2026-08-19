@@ -8,7 +8,7 @@ describe("App", () => {
     test("renders the app", () => {
         render(<App />) // Render App component in simulated DOM
 
-        // Look for th string "summarai" in the simulated DOM
+        // Look for th string "summarai" in the simulated DOM and check result
         expect(screen.getByText(/summarai/i)).toBeInTheDocument()
     })
 
